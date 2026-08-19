@@ -3,12 +3,12 @@ import { useRouter } from 'expo-router';
 import { Search, X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import '../../global.css';
 import { CATEGORY_SUGGESTIONS, SEARCH_PRODUCTS_QUERY } from '../app/graphql/searchQueries';
@@ -137,7 +137,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const categories = categoriesData?.categorySuggestions || [];
 
   return (
-    <View className={compact ? 'px-4 py-2' : 'px-4 py-3'}>
+    <View className={`bg-white pt-12 border-b border-gray-100 shadow-sm ${
+        compact ? 'px-4 pb-2' : 'px-4 pb-3'}`}>
       {/* Search Input */}
       <View className="flex-row items-center bg-gray-100 rounded-full px-3.5 py-2">
         <Search size={18} color="#9CA3AF" />

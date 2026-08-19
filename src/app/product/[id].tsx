@@ -1,5 +1,5 @@
 // src/app/product/[id].tsx
-import { Header } from '@/components/Header';
+import { SearchBar } from '@/components/SearchBar';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -232,7 +232,7 @@ export default function ProductDetailScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      <Header />
+      <SearchBar compact={true} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* 1. GÖRSEL ALANI */}

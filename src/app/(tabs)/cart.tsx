@@ -22,7 +22,7 @@ import {
   View,
 } from 'react-native';
 
-import { Header } from '@/components/Header';
+import { SearchBar } from '@/components/SearchBar';
 import { ADD_TO_BASKET, GET_MY_BASKET, REMOVE_FROM_BASKET } from '../graphql/card';
 import { getImageUrl } from '../graphql/getImageUrl';
 import {
@@ -283,7 +283,7 @@ export default function CartScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <Header />
+      <SearchBar compact={true} />
 
       {/* Başlık */}
       <View className="px-4 py-3 bg-white border-b border-gray-100 flex-row justify-between items-center">

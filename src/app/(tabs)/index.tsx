@@ -1,6 +1,6 @@
 // src/app/(tabs)/index.tsx
-import { Header } from '@/components/Header';
 import { ProductCard } from '@/components/ProductCard';
+import { SearchBar } from '@/components/SearchBar';
 import { useQuery } from '@apollo/client/react';
 import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native';
 import { getImageUrl } from '../graphql/getImageUrl';
@@ -65,7 +65,7 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <Header />
+      <SearchBar compact={true} />
 
       {/* 2 Sütunlu Ürün Izgara Listesi */}
       <FlatList
