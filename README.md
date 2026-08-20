@@ -23,23 +23,17 @@ Bu proje, Expo + React Native + TypeScript kullanılarak geliştirilmiş, kullan
 - Apollo Client + GraphQL
 - NativeWind / Tailwind CSS
 - AsyncStorage
-- Firebase (yapılandırma dosyası mevcut)
 - Lucide React Native
 
 ## Proje Yapısı
 
 ```text
 .
-├── AGENTS.md
-├── CLAUDE.md
 ├── app.json
 ├── babel.config.js
 ├── eslint.config.js
-├── expo-env.d.ts
-├── firebaseConfig.ts
 ├── global.css
 ├── metro.config.js
-├── nativewind-env.d.ts
 ├── package.json
 ├── README.md
 ├── tailwind.config.js
@@ -49,51 +43,11 @@ Bu proje, Expo + React Native + TypeScript kullanılarak geliştirilmiş, kullan
 │   ├── app/
 │   │   ├── _layout.tsx
 │   │   ├── (auth)/
-│   │   │   ├── _layout.tsx
-│   │   │   ├── login.tsx
-│   │   │   └── register.tsx
 │   │   ├── (tabs)/
-│   │   │   ├── _layout.tsx
-│   │   │   ├── cart.tsx
-│   │   │   ├── favorite.tsx
-│   │   │   ├── index.tsx
-│   │   │   ├── search.tsx
-│   │   │   └── profile/
-│   │   │       ├── _layout.tsx
-│   │   │       ├── index.tsx
-│   │   │       └── oldOrders.tsx
 │   │   ├── checkout/
-│   │   │   ├── _layout.tsx
-│   │   │   ├── index.tsx
-│   │   │   └── succes.tsx
 │   │   ├── graphql/
-│   │   │   ├── authLogin.ts
-│   │   │   ├── authRegister.ts
-│   │   │   ├── card.ts
-│   │   │   ├── client.ts
-│   │   │   ├── favorite.ts
-│   │   │   ├── getImageUrl.ts
-│   │   │   ├── order.ts
-│   │   │   ├── profile.ts
-│   │   │   ├── queries.ts
-│   │   │   └── searchQueries.ts
-│   │   ├── mocks/
-│   │   │   ├── mockProducts.tsx
-│   │   │   └── mockUser.ts
 │   │   ├── product/
-│   │   │   └── [id].tsx
-│   │   ├── types/
-│   │   │   ├── authLogin.ts
-│   │   │   ├── authRegister.ts
-│   │   │   ├── card.ts
-│   │   │   ├── favorite.ts
-│   │   │   ├── id.ts
-│   │   │   ├── order.ts
-│   │   │   ├── product.ts
-│   │   │   ├── profile.ts
-│   │   │   ├── schema.ts
-│   │   │   └── search.ts
-│   │   └── ...
+│   │   └── types/
 │   └── components/
 │       ├── ProductCard.tsx
 │       └── SearchBar.tsx
@@ -157,13 +111,8 @@ npm run web
 
 - Uygulamanın ana navigasyonu `expo-router` ile yönetilmektedir.
 - Tab navigasyonu `src/app/(tabs)/_layout.tsx` içinde tanımlanmıştır.
-- `firebaseConfig.ts` dosyası Firebase yapılandırmasını içerir; eğer kullanılacaksa Firebase proje bilgileri güncellenmelidir.
-- Olanaklar ve GraphQL API şeması, backend tarafında tanımlanan alanlara göre çalışır.
+- GraphQL API şeması, backend tarafında tanımlanan alanlara göre çalışır.
 
 ## Geliştirici Notları
 
 Bu proje, örnek bir e-ticaret iş akışını mobil uygulama olarak temsil eder. Özellikle ürün listesi, favoriler, sepet ve checkout süreçleri GraphQL veri modeline göre tasarlanmıştır.
-
-## Lisans
-
-Bu proje için lisan bilgisi eklenmemiştir. İsterseniz proje için uygun lisans dosyası da eklenebilir.
