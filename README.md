@@ -43,16 +43,64 @@ Bu proje, Expo + React Native + TypeScript kullanılarak geliştirilmiş, kullan
 │   ├── app/
 │   │   ├── _layout.tsx
 │   │   ├── (auth)/
+│   │   │   ├── _layout.tsx
+│   │   │   ├── login.tsx
+│   │   │   └── register.tsx
 │   │   ├── (tabs)/
+│   │   │   ├── _layout.tsx
+│   │   │   ├── index.tsx
+│   │   │   ├── favorite.tsx
+│   │   │   ├── cart.tsx
+│   │   │   ├── search.tsx
+│   │   │   └── profile/
+│   │   │       ├── _layout.tsx
+│   │   │       ├── index.tsx
+│   │   │       └── oldOrders.tsx
 │   │   ├── checkout/
+│   │   │   ├── _layout.tsx
+│   │   │   ├── index.tsx
+│   │   │   └── succes.tsx
 │   │   ├── graphql/
+│   │   │   ├── client.ts
+│   │   │   ├── authLogin.ts
+│   │   │   ├── authRegister.ts
+│   │   │   ├── card.ts
+│   │   │   ├── favorite.ts
+│   │   │   ├── order.ts
+│   │   │   ├── profile.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── getImageUrl.ts
+│   │   │   └── searchQueries.ts
 │   │   ├── product/
-│   │   └── types/
+│   │   │   └── [id].tsx
+│   │   ├── types/
+│   │   │   ├── authLogin.ts
+│   │   │   ├── authRegister.ts
+│   │   │   ├── card.ts
+│   │   │   ├── favorite.ts
+│   │   │   ├── order.ts
+│   │   │   ├── product.ts
+│   │   │   ├── profile.ts
+│   │   │   └── search.ts
+│   │   └── mocks/
+│   │       ├── mockProducts.tsx
+│   │       └── mockUser.ts
 │   └── components/
 │       ├── ProductCard.tsx
 │       └── SearchBar.tsx
 └── assets/
 ```
+
+### Klasörlerin görevi
+
+- `src/app`: uygulama ekranları ve route yapısı
+- `src/app/(auth)`: giriş ve kayıt ekranları
+- `src/app/(tabs)`: ana sekmeler (ana sayfa, favoriler, sepet, profil)
+- `src/app/checkout`: ödeme ve sipariş tamamlanma akışı
+- `src/app/graphql`: GraphQL sorguları, mutationları ve Apollo client ayarları
+- `src/app/types`: TypeScript tip ve interface tanımları
+- `src/components`: tekrar kullanılabilen UI bileşenleri
+- `assets`: görsel ve statik dosyalar
 
 ## Gereksinimler
 
