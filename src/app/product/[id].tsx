@@ -4,11 +4,13 @@ import { useMutation, useQuery } from '@apollo/client/react';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertCircle, ArrowLeft, Heart, ShoppingBag, Star } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { ADD_TO_BASKET, GET_MY_BASKET } from '../graphql/card';
+import { GET_MY_FAVORITES, TOGGLE_FAVORITE } from '../graphql/favorite';
 import { getImageUrl } from '../graphql/getImageUrl';
 import { GET_PRODUCT_BY_ID } from '../graphql/queries';
+import { MyFavoritesData, ToggleFavoriteData, ToggleFavoriteVariables, } from '../types/favorite';
 import { ProductComment, ProductDetailData, Variation, VariationOption } from '../types/id';
 
 // Ortalama puan hesaplama
@@ -22,7 +24,37 @@ export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  // 1. Apollo Query & Mutation
+  // 1. Kullanıcının mevcut favori listesini çek
+  const { data: favData } = useQuery<MyFavoritesData>(GET_MY_FAVORITES);
+
+  // 2. Ürünün favorilerde olup olmadığını tespit et
+  const isFavorited = useMemo(() => {
+    return favData?.myFavorites?.some((fav) => fav.product.id === id) ?? false;
+  }, [favData, id]);
+
+  // 3. Favori Ekle / Çıkar Mutasyonu
+  const [toggleFavorite, { loading: toggling }] = useMutation<
+    ToggleFavoriteData,
+    ToggleFavoriteVariables
+  >(TOGGLE_FAVORITE, {
+    refetchQueries: [{ query: GET_MY_FAVORITES }],
+  }); 
+
+  const handleToggleFavorite = async () => {
+    if (!id || toggling) return;
+
+    try {
+      await toggleFavorite({
+        variables: {
+          data: { productId: id },
+        },
+      });
+    } catch (err: any) {
+      Alert.alert('Hata', err.message || 'Favori durumu güncellenemedi.');
+    }
+  };
+
+  // 4. Apollo Query & Mutation
   const { data, loading, error } = useQuery<ProductDetailData>(GET_PRODUCT_BY_ID, {
     variables: { id },
     skip: !id,
@@ -245,16 +277,17 @@ export default function ProductDetailScreen() {
               <ArrowLeft size={20} color="#1F2937" />
             </Pressable>
 
-            <Pressable
-              onPress={() => setIsFavorite(!isFavorite)}
-              className="w-10 h-10 rounded-full bg-white/90 items-center justify-center shadow-md active:bg-gray-100"
-            >
-              <Heart
-                size={20}
-                color={isFavorite ? '#F97316' : '#1F2937'}
-                fill={isFavorite ? '#F97316' : 'transparent'}
-              />
-            </Pressable>
+          <Pressable
+            onPress={handleToggleFavorite}
+           disabled={toggling}
+           className="w-10 h-10 rounded-full bg-white/90 items-center justify-center shadow-md border border-gray-100 active:scale-95"
+           >
+            <Heart
+              size={20}
+              color={isFavorited ? '#EF4444' : '#6B7280'}
+              fill={isFavorited ? '#EF4444' : 'none'}
+           />
+          </Pressable>
           </View>
 
           <Image

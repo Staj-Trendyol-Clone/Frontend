@@ -3,29 +3,29 @@ import { useApolloClient, useMutation, useQuery } from '@apollo/client/react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
 import {
-    CalendarDays,
-    Heart,
-    LogIn,
-    LogOut,
-    MapPin,
-    Package,
-    Pencil,
-    Phone,
-    Save,
-    ShoppingBag,
-    UserCircle,
-    UserPlus,
-    X,
+  CalendarDays,
+  Heart,
+  LogIn,
+  LogOut,
+  MapPin,
+  Package,
+  Pencil,
+  Phone,
+  Save,
+  ShoppingBag,
+  UserCircle,
+  UserPlus,
+  X,
 } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { GET_USER_PROFILE, UPDATE_USER_PROFILE } from '../../graphql/profile';
 import { UserProfileData } from '../../types/profile';

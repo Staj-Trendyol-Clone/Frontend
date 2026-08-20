@@ -1,5 +1,5 @@
 // src/app/checkout/index.tsx
-import { useQuery } from '@apollo/client/react';
+import { useMutation, useQuery } from '@apollo/client/react';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import {
@@ -28,8 +28,10 @@ import {
 
 import { GET_MY_BASKET } from '../graphql/card';
 import { getImageUrl } from '../graphql/getImageUrl';
+import { CHECKOUT_BASKET, GET_MY_ORDERS } from '../graphql/order';
 import { GET_USER_PROFILE } from '../graphql/profile';
 import { BasketItem, UserBasketData, VariantOptionInfo } from '../types/card';
+import { CheckoutBasketData } from '../types/order';
 import { UserProfileData } from '../types/profile';
 
 export default function CheckoutScreen() {
@@ -47,10 +49,21 @@ export default function CheckoutScreen() {
     0
   );
 
-  // DB'den gelen sabit teslimat adresi
+  // 1. DB'den gelen sabit teslimat adresi
   const deliveryAddress = profileData?.me?.address || '';
   const recipientName = profileData?.me?.username || '';
   const recipientPhone = profileData?.me?.phoneNumber || '';
+
+  // 1.1 DB'ye Siparişi Kaydeden Mutasyon
+  const [checkoutBasket, { loading: checkoutLoading }] = useMutation<CheckoutBasketData>(
+    CHECKOUT_BASKET,
+    {
+      refetchQueries: [
+        { query: GET_MY_BASKET }, // Sepet rozetini ve sepet listesini sıfırlar
+        { query: GET_MY_ORDERS },  // Geçmiş siparişler listesini günceller
+      ],
+    }
+  );
 
   // 2. Form State'leri
   const [isSameBilling, setIsSameBilling] = useState(true);
@@ -80,8 +93,13 @@ export default function CheckoutScreen() {
     }
   };
 
-  // 4. Doğrulama ve Siparişi Tamamlama
+  // 5. Siparişi Doğrulama ve Database'e Gönderme
   const handleCompleteOrder = async () => {
+    if (basketItems.length === 0) {
+      Alert.alert('Sepetiniz Boş', 'Sipariş vermek için sepetinizde ürün bulunmalıdır.');
+      return;
+    }
+
     if (!deliveryAddress.trim()) {
       Alert.alert(
         'Teslimat Adresi Bulunamadı',
@@ -124,11 +142,18 @@ export default function CheckoutScreen() {
       return;
     }
 
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      router.replace('/checkout/succes');
-    }, 1200);
+    try {
+      // Backend'e GraphQL isteği atarak siparişi DB'ye kaydet
+      const response = await checkoutBasket();
+
+      if (response.data?.checkoutBasket?.order) {
+        router.replace('/checkout/succes');
+      } else {
+        Alert.alert('Hata', response.data?.checkoutBasket?.message || 'Sipariş oluşturulamadı.');
+      }
+    } catch (err: any) {
+      Alert.alert('Sipariş Hatası', err.message || 'Sipariş veritabanına işlenirken bir sorun oluştu.');
+    }
   };
 
   if (basketLoading || profileLoading) {
