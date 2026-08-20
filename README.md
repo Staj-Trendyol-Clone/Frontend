@@ -1,123 +1,169 @@
-# 🛒 E-Ticaret Mobil Uygulaması (React Native & GraphQL)
+# 🛒 E-Ticaret Mobil Uygulaması
 
-Modern mimari prensipleriyle geliştirilmiş, **Expo**, **React Native**, **TypeScript**, **Tailwind CSS (NativeWind)** ve **Apollo Client (GraphQL)** tabanlı tam kapsamlı bir e-ticaret mobil uygulaması.
+Bu proje, Expo + React Native + TypeScript kullanılarak geliştirilmiş, kullanıcı girişi, ürün listesi, favoriler, sepet, profil ve sipariş akışı içeren mobil bir e-ticaret uygulamasıdır.
 
----
+## Özellikler
 
-## 📱 Özellikler
+- Kullanıcı kaydı ve girişi
+- JWT tabanlı oturum yönetimi
+- Ürün listesi ve ürün detay ekranı
+- Favori ürün ekleme/çıkarma
+- Sepet yönetimi ve sepet badge göstergesi
+- Sipariş oluşturma ve ödeme akışı
+- Profil görüntüleme ve kişisel bilgileri güncelleme
+- GraphQL API ile veri akışı
+- NativeWind ile modern mobil arayüz
 
-* **Kimlik Doğrulama & Oturum Yönetimi:**
-* JWT (JSON Web Token) tabanlı güvenli kimlik doğrulama.
-* Form validasyonlu Kayıt Ol (`Register`) ve Giriş Yap (`Login`) akışı.
-* Token'ın `AsyncStorage` üzerinde saklanması ve Apollo Client Header (`Authorization: JWT <token>`) entegrasyonu.
+## Teknoloji Yığını
 
+- React Native
+- Expo SDK 57
+- Expo Router
+- TypeScript
+- Apollo Client + GraphQL
+- NativeWind / Tailwind CSS
+- AsyncStorage
+- Firebase (yapılandırma dosyası mevcut)
+- Lucide React Native
 
-* **Dinamik Sepet Yönetimi:**
-* GraphQL `myBasket` sorgusu ile anlık sepet takibi.
-* Sepete ürün ekleme, adet artırma/azaltma ve `basketItemId` ile ürün silme.
-* Alt sekme çubuğunda (Tab Bar) anlık güncellenen dinamik sepet rozeti (badge).
-
-
-* **Güvenli Ödeme & Sipariş Akışı (`Checkout`):**
-* Sepetteki ürünlerin görsel, birim fiyat ve adet dökümünü içeren sipariş özeti.
-* Kullanıcı profilinden otomatik çekilen teslimat adresi ve dinamik açılır fatura adresi seçeneği.
-* Otomatik boşluk/formatlama destekli Kart Numarası, Son Kullanma Tarihi (AA/YY) ve CVV girişleri.
-* Sayfa akışından bağımsız kaydırılabilir (`nestedScrollEnabled`) Mesafeli Satış Sözleşmesi.
-* Sipariş tamamlandığında sepeti otomatik temizleyen başarı ekranı (`/checkout/succes`).
-
-
-* **Gelişmiş Navigasyon & Kullanıcı Deneyimi:**
-* **Expo Router** tabanlı dosya hiyerarşik yönlendirme.
-* Sekmeler arası gezinme geçmişini koruyan `backBehavior="history"` ve alt sayfalarda hiyerarşik Stack yapısı.
-* Klavye açıldığında form alanlarının kaymasını önleyen `KeyboardAvoidingView` optimizasyonları.
-
-
-
----
-
-## 🛠️ Teknoloji Yığını
-
-* **Framework:** React Native / Expo
-* **Yönlendirme (Routing):** Expo Router (File-based routing)
-* **Programlama Dili:** TypeScript
-* **Veri Yönetimi & API:** Apollo Client, GraphQL
-* **Stil & Tasarım:** Tailwind CSS (NativeWind)
-* **İkonlar & Görsel:** Lucide React Native, Expo Image
-* **Yerel Depolama:** `@react-native-async-storage/async-storage`
-
----
-
-## 📁 Proje Dizin Yapısı
+## Proje Yapısı
 
 ```text
-src/
-├── app/
-│   ├── (auth)/             # Giriş ve Kayıt ekranları
+.
+├── AGENTS.md
+├── CLAUDE.md
+├── app.json
+├── babel.config.js
+├── eslint.config.js
+├── expo-env.d.ts
+├── firebaseConfig.ts
+├── global.css
+├── metro.config.js
+├── nativewind-env.d.ts
+├── package.json
+├── README.md
+├── tailwind.config.js
+├── tsconfig.json
+├── assets/
+├── src/
+│   ├── app/
 │   │   ├── _layout.tsx
-│   │   ├── login.tsx
-│   │   └── register.tsx
-│   ├── (tabs)/             # Ana sekme çubuğu navigasyonu
-│   │   ├── _layout.tsx     # Tab bar & Dinamik sepet badge'i
-│   │   ├── index.tsx       # Anasayfa
-│   │   ├── favorite.tsx    # Favoriler
-│   │   ├── cart.tsx        # Sepet ekranı
-│   │   ├── search.tsx      # Arama ekranı
-│   │   └── profile/        # Profil ve alt sayfalar stack yapısı
-│   │       ├── _layout.tsx
-│   │       ├── index.tsx
-│   │       └── oldOrders.tsx
-│   ├── checkout/           # Ödeme adımları
-│   │   ├── _layout.tsx
-│   │   ├── index.tsx       # Ödeme formu & Sözleşme
-│   │   └── succes.tsx      # Başarılı sipariş ekranı
-│   ├── product/
-│   │   └── [id].tsx        # Dinamik ürün detay sayfası
-│   └── _layout.tsx         # Kök Stack ve Apollo Provider
-├── graphql/                # GraphQL Queries, Mutations & Client ayarları
-│   ├── client.ts
-│   ├── card.ts
-│   ├── auth.ts
-│   └── profile.ts
-└── types/                  # TypeScript interface ve tip tanımları
-    ├── auth.ts
-    ├── card.ts
-    └── profile.ts
-
+│   │   ├── (auth)/
+│   │   │   ├── _layout.tsx
+│   │   │   ├── login.tsx
+│   │   │   └── register.tsx
+│   │   ├── (tabs)/
+│   │   │   ├── _layout.tsx
+│   │   │   ├── cart.tsx
+│   │   │   ├── favorite.tsx
+│   │   │   ├── index.tsx
+│   │   │   ├── search.tsx
+│   │   │   └── profile/
+│   │   │       ├── _layout.tsx
+│   │   │       ├── index.tsx
+│   │   │       └── oldOrders.tsx
+│   │   ├── checkout/
+│   │   │   ├── _layout.tsx
+│   │   │   ├── index.tsx
+│   │   │   └── succes.tsx
+│   │   ├── graphql/
+│   │   │   ├── authLogin.ts
+│   │   │   ├── authRegister.ts
+│   │   │   ├── card.ts
+│   │   │   ├── client.ts
+│   │   │   ├── favorite.ts
+│   │   │   ├── getImageUrl.ts
+│   │   │   ├── order.ts
+│   │   │   ├── profile.ts
+│   │   │   ├── queries.ts
+│   │   │   └── searchQueries.ts
+│   │   ├── mocks/
+│   │   │   ├── mockProducts.tsx
+│   │   │   └── mockUser.ts
+│   │   ├── product/
+│   │   │   └── [id].tsx
+│   │   ├── types/
+│   │   │   ├── authLogin.ts
+│   │   │   ├── authRegister.ts
+│   │   │   ├── card.ts
+│   │   │   ├── favorite.ts
+│   │   │   ├── id.ts
+│   │   │   ├── order.ts
+│   │   │   ├── product.ts
+│   │   │   ├── profile.ts
+│   │   │   ├── schema.ts
+│   │   │   └── search.ts
+│   │   └── ...
+│   └── components/
+│       ├── ProductCard.tsx
+│       └── SearchBar.tsx
+└── assets/
 ```
 
----
+## Gereksinimler
 
-## 🚀 Kurulum ve Başlatma
+- Node.js 18+
+- npm veya yarn
+- Expo CLI
+- Mobil cihaz veya emülatör
 
-### 1. Depoyu Klonlayın
+## Kurulum
+
+1. Projeyi klonlayın:
 
 ```bash
-git clone https://github.com/KULLANICI_ADINIZ/PROJE_ADINIZ.git
-cd PROJE_ADINIZ
-
+git clone <repo-url>
+cd <proje-klasoru>
 ```
 
-### 2. Bağımlılıkları Yükleyin
+2. Bağımlılıkları yükleyin:
 
 ```bash
 npm install
-# veya
-yarn install
-
 ```
 
-### 3. Çevre Değişkenlerini Ayarlayın
+3. Çevre değişkenlerini ayarlayın.
 
-Kök dizinde bir `.env` dosyası oluşturup GraphQL backend uç noktanızı tanımlayın:
+Projenin GraphQL istemcisi `src/app/graphql/client.ts` içinde aşağıdaki değişkeni kullanmaktadır:
 
 ```env
-EXPO_PUBLIC_GRAPHQL_API_URL=http://YOUR_LOCAL_IP:8000/graphql/
-
+EXPO_PUBLIC_GRAPHQL_LINK=https://your-graphql-api-url/graphql
 ```
 
-### 4. Uygulamayı Başlatın
+Örnek:
+
+```env
+EXPO_PUBLIC_GRAPHQL_LINK=http://192.168.1.10:8000/graphql
+```
+
+> Not: Uygulama, kullanıcı token'ını `AsyncStorage` üzerinde saklar ve Apollo istemcisine `Authorization: JWT <token>` şeklinde ekler.
+
+## Çalıştırma
+
+```bash
+npm start
+```
+
+veya doğrudan platform için:
 
 ```bash
 npx expo start
-
+npm run android
+npm run ios
+npm run web
 ```
+
+## Notlar
+
+- Uygulamanın ana navigasyonu `expo-router` ile yönetilmektedir.
+- Tab navigasyonu `src/app/(tabs)/_layout.tsx` içinde tanımlanmıştır.
+- `firebaseConfig.ts` dosyası Firebase yapılandırmasını içerir; eğer kullanılacaksa Firebase proje bilgileri güncellenmelidir.
+- Olanaklar ve GraphQL API şeması, backend tarafında tanımlanan alanlara göre çalışır.
+
+## Geliştirici Notları
+
+Bu proje, örnek bir e-ticaret iş akışını mobil uygulama olarak temsil eder. Özellikle ürün listesi, favoriler, sepet ve checkout süreçleri GraphQL veri modeline göre tasarlanmıştır.
+
+## Lisans
+
+Bu proje için lisan bilgisi eklenmemiştir. İsterseniz proje için uygun lisans dosyası da eklenebilir.
