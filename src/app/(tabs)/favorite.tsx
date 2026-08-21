@@ -1,5 +1,5 @@
   // src/app/(tabs)/favorite.tsx
-  import { useMutation, useQuery } from '@apollo/client/react';
+import { useMutation, useQuery } from '@apollo/client/react';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { ArrowRight, Heart, Star } from 'lucide-react-native';
@@ -14,7 +14,6 @@ import {
   View,
 } from 'react-native';
 
-import { SearchBar } from '../../components/SearchBar';
 import { GET_MY_FAVORITES, TOGGLE_FAVORITE } from '../graphql/favorite';
 import { getImageUrl } from '../graphql/getImageUrl';
 import {
@@ -136,8 +135,7 @@ import {
     }
 
     return (
-      <View className="flex-1 bg-gray-50">
-          <SearchBar compact={true} />
+      <View className="flex-1 bg-gray-50 py-5">
         <View className="pt-4 pb-3.5 px-4 bg-white border-b border-gray-100 flex-row items-center justify-between shadow-sm">
           <View className="flex-row items-center gap-2">
             <Star size={20} color="#F97316" fill="#F97316" />

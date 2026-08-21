@@ -10,6 +10,12 @@ export const SEARCH_PRODUCTS_QUERY: TypedDocumentNode<SearchProductsData> = gql`
       productTotalQuantity
       coverImage
       createdAt
+      categories {
+        categoryName
+      }
+      comment {
+        stars
+      }
     }
   }
 `;

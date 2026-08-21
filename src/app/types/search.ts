@@ -5,6 +5,12 @@ export interface SearchProduct {
   productTotalQuantity: number;
   coverImage: string | null;
   createdAt: string;
+  categories: {
+    categoryName: string;
+  }[];
+  comment: {
+    stars: number;
+  }[];
 }
 
 export interface SearchProductsData {

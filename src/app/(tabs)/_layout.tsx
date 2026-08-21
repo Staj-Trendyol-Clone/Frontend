@@ -5,14 +5,13 @@ import { Tabs } from 'expo-router';
 import { Home, ShoppingBag, Star, User } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 
-import '../../../global.css'; // Tailwind CSS
+import '../../../global.css';
 import { GET_MY_BASKET } from '../graphql/card';
 import { UserBasketData } from '../types/card';
 
 export default function TabsLayout() {
   const [hasToken, setHasToken] = useState(false);
 
-  // 1. Kullanıcı oturum durumunu kontrol et
   useEffect(() => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem('userToken');
@@ -21,20 +20,20 @@ export default function TabsLayout() {
     checkToken();
   }, []);
 
-  // 2. Sepet verisini çek (Sadece oturum açıksa çalışır)
   const { data } = useQuery<UserBasketData>(GET_MY_BASKET, {
     skip: !hasToken,
   });
 
   const cartItemCount =
     data?.myBasket?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+
   return (
     <Tabs
       backBehavior="history"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#F97316',   // text-orange-500
-        tabBarInactiveTintColor: '#6B7280', // text-gray-500
+        tabBarActiveTintColor: '#F97316',
+        tabBarInactiveTintColor: '#6B7280',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopColor: '#F3F4F6',
@@ -54,7 +53,7 @@ export default function TabsLayout() {
         },
       }}
     >
-      {/* 1. SEKMELER: Anasayfa */}
+      {/* 1. Anasayfa */}
       <Tabs.Screen
         name="index"
         options={{
@@ -65,7 +64,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 2. SEKMELER: Favoriler */}
+      {/* 2. Favoriler */}
       <Tabs.Screen
         name="favorite"
         options={{
@@ -76,12 +75,12 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 3. SEKMELER: Sepetim */}
+      {/* 3. Sepetim */}
       <Tabs.Screen
         name="cart"
         options={{
           title: 'Sepetim',
-          tabBarBadge: cartItemCount > 0 ? cartItemCount : undefined, // 0 ise rozet gizlenir
+          tabBarBadge: cartItemCount > 0 ? cartItemCount : undefined,
           tabBarBadgeStyle: {
             backgroundColor: '#EF4444',
             color: '#FFFFFF',
@@ -95,9 +94,17 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 4. SEKMELER: Profil */}
+      {/* 4. Profil (DÜZELTİLDİ: listeners eklendi) */}
       <Tabs.Screen
         name="profile"
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            // Profil sekmesine basıldığında iç yığını sıfırlayarak doğrudan index'e yönlendirir
+            navigation.navigate('profile', {
+              screen: 'index',
+            });
+          },
+        })}
         options={{
           title: 'Profil',
           tabBarIcon: ({ color, size }) => (
@@ -105,9 +112,11 @@ export default function TabsLayout() {
           ),
         }}
       />
+
+      {/* Gizli Arama Sekmesi */}
       <Tabs.Screen
         name="search"
-        options={{href:null}}
+        options={{ href: null }}
       />
     </Tabs>
   );

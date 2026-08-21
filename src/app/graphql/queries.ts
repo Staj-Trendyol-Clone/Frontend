@@ -63,6 +63,9 @@ export const GET_PRODUCT_BY_ID: TypedDocumentNode<AllProductsData> = gql`
         id
         stars
         comment
+        user {
+        username
+      }
       }
       variations {
         id

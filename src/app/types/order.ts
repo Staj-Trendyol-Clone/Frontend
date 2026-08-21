@@ -1,4 +1,9 @@
 // src/types/order.ts
+export interface VariantOption {
+  id?: string;
+  varOptionValue: string;
+}
+
 export interface OrderProduct {
   id: string;
   productName: string;
@@ -8,6 +13,7 @@ export interface OrderProduct {
 export interface OrderProductVariant {
   id: string;
   varPrice: string | number;
+  options?: VariantOption[];
   product: OrderProduct;
 }
 

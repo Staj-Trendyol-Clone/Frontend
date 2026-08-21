@@ -12,8 +12,7 @@ export interface Product {
   imageUrl: string;
   price: number;
   rating: number;
-  description?: string;
-  isFavorite?: boolean; // Favori durumu için opsiyonel alan
+  reviewCount?: number;
 }
 
 export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
@@ -22,36 +21,48 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   return (
     <Pressable
       onPress={() => router.push(`/product/${product.id}`)}
-      className="w-36 bg-white rounded-2xl border border-gray-100 overflow-hidden mr-3 active:opacity-90 shadow-sm"
+      className="flex-1 bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm active:opacity-90"
     >
-{/* Görsel Katmanı */}
-<View className="w-full h-36 bg-gray-50 overflow-hidden">
-  <Image
-    source={{ uri: product.imageUrl }}
-    style={{ width: '100%', height: '100%' }} // <--- className yerine style kullandık
-    contentFit="cover"
-    transition={150}
-    onError={(e) => console.log('Görsel Yüklenemedi:', e.error)} // Hatayı tespit etmek için
-  />
-</View>
+      {/* Ürün Görseli */}
+      <View className="w-full h-36 bg-gray-50 items-center justify-center p-2 border-b border-gray-50">
+        <Image
+          source={{ uri: product.imageUrl }}
+          style={{ width: '100%', height: '100%' }}
+          contentFit="contain"
+          transition={150}
+        />
+      </View>
 
-      {/* İçerik Katmanı */}
-      <View className="p-2.5">
-        <Text numberOfLines={2} className="text-xs text-gray-700 leading-4 h-8">
-          <Text className="font-bold text-gray-900">{product.brand} </Text>
+      {/* Ürün Bilgileri */}
+      <View className="p-3">
+        {/* Kategori / Marka Rozeti */}
+        <Text
+          numberOfLines={1}
+          className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-1"
+        >
+          {product.brand}
+        </Text>
+
+        {/* Ürün Başlığı */}
+        <Text numberOfLines={2} className="text-xs font-semibold text-gray-800 leading-4 h-8 mb-2">
           {product.title}
         </Text>
 
-        {/* Yıldız Puanı */}
-        <View className="flex-row items-center my-1.5 gap-1">
-          <Star size={11} color="#EAB308" fill="#EAB308" />
-          <Text className="text-[10px] font-bold text-gray-600">{product.rating}</Text>
-        </View>
+        {/* Alt Satır: Yıldız Puanı ve Fiyat */}
+        <View className="flex-row items-center justify-between pt-2 border-t border-gray-50">
+          <View className="flex-row items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100">
+            <Star size={10} color="#EAB308" fill="#EAB308" />
+            <Text className="text-[10px] font-bold text-amber-700">
+              {product.rating.toFixed(1)}
+            </Text>
+          </View>
 
-        {/* Fiyat */}
-        <Text className="text-sm font-extrabold text-orange-600">
-          {product.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL
-        </Text>
+          <Text className="text-xs font-extrabold text-gray-900">
+            {product.price > 0
+              ? `${product.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL`
+              : 'Fiyat Yok'}
+          </Text>
+        </View>
       </View>
     </Pressable>
   );

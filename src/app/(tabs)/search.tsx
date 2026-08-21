@@ -1,18 +1,22 @@
+// src/app/search.tsx (veya ilgili arama sayfası dosyası)
 import { useLazyQuery } from '@apollo/client/react';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Sliders, X } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Modal,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import '../../../global.css';
 import { SearchBar } from '../../components/SearchBar';
+import { getImageUrl } from '../graphql/getImageUrl';
 import { SEARCH_PRODUCTS_QUERY } from '../graphql/searchQueries';
 import { SearchProductsData } from '../types/search';
 
@@ -26,26 +30,79 @@ interface FilterState {
   rating: number | null;
 }
 
+const DEFAULT_FILTERS: FilterState = {
+  sort: 'relevance',
+  priceMin: 0,
+  priceMax: 100000,
+  selectedCategories: [],
+  rating: null,
+};
+
+const getProductRating = (comments: { stars: number }[] = []) => {
+  if (comments.length === 0) return 0;
+  return comments.reduce((total, comment) => total + comment.stars, 0) / comments.length;
+};
+
 const SearchPage = () => {
   const { query = '', category = '' } = useLocalSearchParams<{
     query?: string;
     category?: string;
   }>();
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState<string>(category || '');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
-    sort: 'relevance',
-    priceMin: 0,
-    priceMax: 100000,
-    selectedCategories: selectedCategory ? [selectedCategory] : [],
-    rating: null,
+    ...DEFAULT_FILTERS,
+    selectedCategories: category ? [category] : [],
   });
 
-  const [searchProducts, { data, loading, refetch }] =
+  const [searchProducts, { data, loading }] =
     useLazyQuery<SearchProductsData>(SEARCH_PRODUCTS_QUERY);
 
-  const products = data?.allProducts || [];
+  const products = useMemo(() => data?.allProducts ?? [], [data]);
+
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set<string>();
+    products.forEach((product) => {
+      product.categories.forEach((productCategory) => {
+        if (productCategory.categoryName) uniqueCategories.add(productCategory.categoryName);
+      });
+    });
+    return Array.from(uniqueCategories).sort((first, second) => first.localeCompare(second, 'tr'));
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    const matchingProducts = products.filter((product) => {
+      const price = Number(product.productAvrPrice) || 0;
+      const matchesPrice = price >= filters.priceMin && price <= filters.priceMax;
+      const matchesCategory =
+        filters.selectedCategories.length === 0 ||
+        product.categories.some((productCategory) =>
+          filters.selectedCategories.includes(productCategory.categoryName),
+        );
+      const matchesRating =
+        filters.rating === null || getProductRating(product.comment) >= filters.rating;
+
+      return matchesPrice && matchesCategory && matchesRating;
+    });
+
+    return [...matchingProducts].sort((firstProduct, secondProduct) => {
+      const firstPrice = Number(firstProduct.productAvrPrice) || 0;
+      const secondPrice = Number(secondProduct.productAvrPrice) || 0;
+
+      switch (filters.sort) {
+        case 'price_asc':
+          return firstPrice - secondPrice;
+        case 'price_desc':
+          return secondPrice - firstPrice;
+        case 'newest':
+          return new Date(secondProduct.createdAt).getTime() - new Date(firstProduct.createdAt).getTime();
+        case 'oldest':
+          return new Date(firstProduct.createdAt).getTime() - new Date(secondProduct.createdAt).getTime();
+        default:
+          return 0;
+      }
+    });
+  }, [filters, products]);
 
   useEffect(() => {
     if (query || category) {
@@ -59,35 +116,29 @@ const SearchPage = () => {
   }, [query, category, searchProducts]);
 
   const handleFilterChange = (newFilters: Partial<FilterState>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
   const handleApplyFilters = () => {
-    // Filters will be applied via callback when queries are available
     setShowFilterModal(false);
   };
 
   const handleResetFilters = () => {
-    setFilters({
-      sort: 'relevance',
-      priceMin: 0,
-      priceMax: 100000,
-      selectedCategories: [],
-      rating: null,
-    });
+    setFilters(DEFAULT_FILTERS);
+  };
+
+  const handlePriceChange = (field: 'priceMin' | 'priceMax', value: string) => {
+    const numericValue = Number(value.replace(/\D/g, '')) || 0;
+    setFilters((previousFilters) => ({
+      ...previousFilters,
+      [field]: field === 'priceMin'
+        ? Math.min(numericValue, previousFilters.priceMax)
+        : Math.max(numericValue, previousFilters.priceMin),
+    }));
   };
 
   const handleProductSelect = (productId: string) => {
     router.push(`/product/${productId}`);
-  };
-
-  const handleRefresh = () => {
-    if (query) {
-      refetch({
-        search: query,
-        categoryName: selectedCategory || '',
-      });
-    }
   };
 
   const sortOptions: { label: string; value: SortOption }[] = [
@@ -98,22 +149,13 @@ const SearchPage = () => {
     { label: 'Eski → Yeni', value: 'oldest' },
   ];
 
-  const categories = [
-    'Elektronik',
-    'Giyim',
-    'Ev & Bahçe',
-    'Spor',
-    'Kitap',
-    'Oyuncak',
-  ];
-
   const ratingOptions = [5, 4, 3, 2, 1];
 
   return (
     <View className="flex-1 bg-white">
-      {/* Header */}
-      <View className="pt-12 pb-2 border-b border-gray-100 shadow-sm">
-        <View className="flex-row items-center justify-between px-4 pb-3">
+      {/* Header (pb-0 ile alt boşluk sıfırlandı) */}
+      <View className="pt-12 pb-0 border-b border-gray-100 shadow-sm">
+        <View className="flex-row items-center justify-between px-4 pb-2">
           <View className="flex-row items-center flex-1">
             <TouchableOpacity onPress={() => router.back()} className="mr-3">
               <ArrowLeft size={24} color="#1F2937" />
@@ -129,22 +171,23 @@ const SearchPage = () => {
             <Sliders size={20} color="#1F2937" />
           </TouchableOpacity>
         </View>
+
         {/* Search Bar */}
         <SearchBar compact={true} />
       </View>
 
-      {/* Results Count & Sort */}
+      {/* Results Count & Sort (py-1.5 ile dikey boşluk daraltıldı) */}
       {!loading && (
-        <View className="px-4 py-3 border-b border-gray-100">
+        <View className="px-4 py-1.5 border-b border-gray-100 bg-gray-50/50">
           <View className="flex-row items-center justify-between">
-            <Text className="text-sm text-gray-600">
-              {products.length > 0
-                ? `${products.length} ürün bulundu`
+            <Text className="text-xs text-gray-500 font-medium">
+              {filteredProducts.length > 0
+                ? `${filteredProducts.length} ürün listeleniyor`
                 : 'Sonuç bulunamadı'}
             </Text>
             {filters.sort !== 'relevance' && (
-              <Text className="text-xs text-blue-600 font-medium">
-                {sortOptions.find(opt => opt.value === filters.sort)?.label}
+              <Text className="text-xs text-orange-600 font-medium">
+                {sortOptions.find((opt) => opt.value === filters.sort)?.label}
               </Text>
             )}
           </View>
@@ -154,44 +197,51 @@ const SearchPage = () => {
       {/* Loading State */}
       {loading && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#0066CC" />
+          <ActivityIndicator size="large" color="#F97316" />
         </View>
       )}
 
-      {/* Products List */}
-      {!loading && products.length > 0 && (
+      {/* Products List (paddingTop: 4 ile üst boşluk azaltıldı) */}
+      {!loading && filteredProducts.length > 0 && (
         <FlatList
-          data={products}
+          data={filteredProducts}
           keyExtractor={(item) => item.id}
           numColumns={2}
           columnWrapperStyle={{ paddingHorizontal: 8, marginBottom: 8 }}
-          contentContainerStyle={{ paddingHorizontal: 8, paddingTop: 8 }}
+          contentContainerStyle={{ paddingHorizontal: 8, paddingTop: 4, paddingBottom: 20 }}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => handleProductSelect(item.id)}
-              className="flex-1 bg-gray-50 rounded-lg p-3 mx-1 mb-4"
+              className="bg-gray-50 rounded-xl p-2.5 mx-1 mb-2 border border-gray-100 shadow-sm"
+              style={{ width: '48%' }}
             >
-              {/* Product Image Placeholder */}
-              <View className="w-full h-32 bg-gray-200 rounded-lg mb-2 items-center justify-center">
-                <Text className="text-xs text-gray-500">Görsel</Text>
+              {/* Product Image */}
+              <View className="w-full h-32 bg-white rounded-lg mb-2 overflow-hidden items-center justify-center">
+                <Image
+                  source={{ uri: getImageUrl(item.coverImage || undefined) }}
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit="contain"
+                  transition={150}
+                />
               </View>
 
               {/* Product Info */}
               <Text
-                className="text-sm font-semibold text-gray-900 mb-1"
+                className="text-xs font-semibold text-gray-900 mb-1 leading-4"
                 numberOfLines={2}
               >
                 {item.productName}
               </Text>
 
               {/* Stock Info */}
-              <Text className="text-xs text-gray-500 mb-2">
+              <Text className="text-[11px] text-gray-500 mb-1">
                 Stok: {item.productTotalQuantity} adet
               </Text>
 
               {/* Price */}
-              <Text className="text-lg font-bold text-orange-500">
-                ₺{Number(item.productAvrPrice).toLocaleString('tr-TR')}
+              <Text className="text-sm font-extrabold text-orange-600">
+                ₺{Number(item.productAvrPrice).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
               </Text>
             </TouchableOpacity>
           )}
@@ -199,13 +249,13 @@ const SearchPage = () => {
       )}
 
       {/* Empty State */}
-      {!loading && products.length === 0 && query && (
+      {!loading && filteredProducts.length === 0 && (query || products.length > 0) && (
         <View className="flex-1 items-center justify-center px-8">
-          <Text className="text-lg font-semibold text-gray-900 mb-2">
-            Sonuç Bulunamadı
+          <Text className="text-base font-bold text-gray-900 mb-1">
+            Filtreye Uygun Ürün Bulunamadı
           </Text>
-          <Text className="text-sm text-gray-600 text-center">
-            "{query}" için bir sonuç bulunamadı. Farklı bir arama yapabilirsiniz.
+          <Text className="text-xs text-gray-500 text-center">
+            Seçtiğiniz filtreleri değiştirerek tekrar deneyebilirsiniz.
           </Text>
         </View>
       )}
@@ -218,7 +268,6 @@ const SearchPage = () => {
         onRequestClose={() => setShowFilterModal(false)}
       >
         <View className="flex-1 bg-white">
-          {/* Modal Header */}
           <View className="pt-12 pb-4 border-b border-gray-100 flex-row items-center justify-between px-4">
             <Text className="text-lg font-semibold text-gray-900">
               Filtrele & Sırala
@@ -243,7 +292,7 @@ const SearchPage = () => {
                   <View
                     className={`w-5 h-5 rounded-full border-2 mr-3 items-center justify-center ${
                       filters.sort === option.value
-                        ? 'bg-blue-600 border-blue-600'
+                        ? 'bg-orange-500 border-orange-500'
                         : 'border-gray-300'
                     }`}
                   >
@@ -262,24 +311,29 @@ const SearchPage = () => {
                 Fiyat Aralığı
               </Text>
               <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-sm text-gray-600">
-                  ₺{filters.priceMin.toLocaleString('tr-TR')}
-                </Text>
-                <Text className="text-sm text-gray-600">
-                  ₺{filters.priceMax.toLocaleString('tr-TR')}
-                </Text>
+                <TextInput
+                  value={String(filters.priceMin)}
+                  onChangeText={(value) => handlePriceChange('priceMin', value)}
+                  keyboardType="numeric"
+                  placeholder="Minimum"
+                  className="w-[45%] border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700"
+                />
+                <TextInput
+                  value={String(filters.priceMax)}
+                  onChangeText={(value) => handlePriceChange('priceMax', value)}
+                  keyboardType="numeric"
+                  placeholder="Maksimum"
+                  className="w-[45%] border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700"
+                />
               </View>
               <View className="bg-gray-200 h-2 rounded-full overflow-hidden">
                 <View
-                  className="bg-blue-600 h-full"
+                  className="bg-orange-500 h-full"
                   style={{
-                    width: `${(filters.priceMax / 100000) * 100}%`,
+                    width: `${Math.min((filters.priceMax / 100000) * 100, 100)}%`,
                   }}
                 />
               </View>
-              <Text className="text-xs text-gray-500 mt-2 text-center">
-                Kaydırıcı özelliği sorgu eklenince aktif olacak
-              </Text>
             </View>
 
             {/* Category Filter Section */}
@@ -294,7 +348,7 @@ const SearchPage = () => {
                     const isSelected = filters.selectedCategories.includes(cat);
                     handleFilterChange({
                       selectedCategories: isSelected
-                        ? filters.selectedCategories.filter(c => c !== cat)
+                        ? filters.selectedCategories.filter((c) => c !== cat)
                         : [...filters.selectedCategories, cat],
                     });
                   }}
@@ -303,7 +357,7 @@ const SearchPage = () => {
                   <View
                     className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${
                       filters.selectedCategories.includes(cat)
-                        ? 'bg-blue-600 border-blue-600'
+                        ? 'bg-orange-500 border-orange-500'
                         : 'border-gray-300'
                     }`}
                   >
@@ -334,7 +388,7 @@ const SearchPage = () => {
                   <View
                     className={`w-5 h-5 rounded-full border-2 mr-3 items-center justify-center ${
                       filters.rating === rating
-                        ? 'bg-blue-600 border-blue-600'
+                        ? 'bg-orange-500 border-orange-500'
                         : 'border-gray-300'
                     }`}
                   >
@@ -351,20 +405,6 @@ const SearchPage = () => {
                 </TouchableOpacity>
               ))}
             </View>
-
-            {/* Subcategory Section (Example for active category) */}
-            {filters.selectedCategories.length > 0 && (
-              <View className="px-4 py-4 border-b border-gray-100">
-                <Text className="text-base font-semibold text-gray-900 mb-3">
-                  {filters.selectedCategories[0]} - Alt Kategoriler
-                </Text>
-                <View className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                  <Text className="text-sm text-blue-700">
-                    Bu kategori için alt filtreleme seçenekleri sorgu eklenince aktif olacak
-                  </Text>
-                </View>
-              </View>
-            )}
           </ScrollView>
 
           {/* Bottom Actions */}
@@ -379,7 +419,7 @@ const SearchPage = () => {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleApplyFilters}
-              className="flex-1 py-3 bg-blue-600 rounded-lg items-center"
+              className="flex-1 py-3 bg-orange-500 rounded-lg items-center"
             >
               <Text className="text-sm font-semibold text-white">
                 Uygula

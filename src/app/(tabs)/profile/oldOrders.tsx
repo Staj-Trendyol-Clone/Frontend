@@ -7,8 +7,9 @@ import {
   ArrowLeft,
   CheckCircle2,
   Clock,
+  MapPin,
   Package,
-  Truck
+  Truck,
 } from 'lucide-react-native';
 import { useState } from 'react';
 import {
@@ -28,21 +29,18 @@ export default function OldOrdersScreen() {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
 
-  // Sipariş verilerini çek
   const { data, loading, error, refetch } = useQuery<GetMyOrdersData>(GET_MY_ORDERS, {
     fetchPolicy: 'network-only',
   });
 
   const orders = data?.myOrders || [];
 
-  // Sayfayı yenileme (Pull to Refresh)
   const onRefresh = async () => {
     setRefreshing(true);
     await refetch();
     setRefreshing(false);
   };
 
-  // Sipariş Durumu Rozeti
   const renderStatusBadge = (status: string) => {
     const formattedStatus = status ? status.toUpperCase() : '';
 
@@ -91,7 +89,6 @@ export default function OldOrdersScreen() {
     }
   };
 
-  // Tarih Formatlayıcı
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -107,7 +104,6 @@ export default function OldOrdersScreen() {
     }
   };
 
-  // Boş Sipariş Durumu
   const renderEmptyState = () => (
     <View className="flex-1 justify-center items-center py-24 px-6">
       <View className="w-20 h-20 bg-orange-50 rounded-full items-center justify-center mb-4 border border-orange-100 shadow-sm">
@@ -126,13 +122,12 @@ export default function OldOrdersScreen() {
     </View>
   );
 
-  // Tekil Sipariş Kartı
   const renderOrderItem = ({ item }: { item: Order }) => {
     const totalAmountNum = Number(item.totalAmount) || 0;
 
     return (
       <View className="bg-white rounded-2xl mb-4 p-4 border border-gray-100 shadow-sm">
-        {/* Sipariş No & Durum */}
+        {/* Sipariş Başlığı */}
         <View className="flex-row items-center justify-between pb-3 border-b border-gray-50">
           <View>
             <Text className="text-xs font-extrabold text-gray-900">Sipariş #{item.id}</Text>
@@ -141,34 +136,57 @@ export default function OldOrdersScreen() {
           {renderStatusBadge(item.status)}
         </View>
 
-        {/* Sipariş Edilen Ürünlerin Listesi */}
+        {/* Sipariş Edilen Ürünler */}
         <View className="py-3 gap-3">
           {item.items.map((orderItem: OrderItem) => {
-            const product = orderItem.productVariant?.product;
+            const variant = orderItem.productVariant;
+            const product = variant?.product;
             const imageUrl = getImageUrl(product?.coverImage || undefined);
             const itemPrice = Number(orderItem.priceAtTimeOfPurchase) || 0;
+            const optionsText = variant?.options?.map((o) => o.varOptionValue).join(' / ');
 
             return (
-              <View key={orderItem.id} className="flex-row items-center">
-                <View className="w-14 h-14 bg-gray-50 rounded-xl overflow-hidden mr-3 border border-gray-100">
+              <View key={orderItem.id} className="flex-row items-center py-1">
+                {/* 1. Ürün Görseli (Tıklanabilir) */}
+                <Pressable
+                  onPress={() => product?.id && router.push(`/product/${product.id}`)}
+                  className="w-14 h-14 bg-gray-50 rounded-xl overflow-hidden mr-3 border border-gray-100 active:opacity-70"
+                >
                   <Image
                     source={{ uri: imageUrl }}
                     style={{ width: '100%', height: '100%' }}
                     contentFit="contain"
                   />
-                </View>
+                </Pressable>
 
+                {/* 2. Ürün Bilgisi & Model / Varyant */}
                 <View className="flex-1">
-                  <Text numberOfLines={1} className="text-xs font-semibold text-gray-900">
-                    {product?.productName || 'Ürün Adı Belirtilmemiş'}
-                  </Text>
+                  <Pressable
+                    onPress={() => product?.id && router.push(`/product/${product.id}`)}
+                    className="active:opacity-70"
+                  >
+                    <Text numberOfLines={1} className="text-xs font-semibold text-gray-900">
+                      {product?.productName || 'Ürün Adı Belirtilmemiş'}
+                    </Text>
+                  </Pressable>
+
+                  {/* Model / Varyant Rozeti */}
+                  {optionsText ? (
+                    <View className="bg-gray-100 self-start px-2 py-0.5 rounded-md mt-1">
+                      <Text className="text-[10px] font-medium text-gray-600">
+                        Model: {optionsText}
+                      </Text>
+                    </View>
+                  ) : null}
+
                   <Text className="text-xs font-bold text-orange-600 mt-1">
                     {itemPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL
                     <Text className="text-gray-400 font-normal"> x {orderItem.quantity}</Text>
                   </Text>
                 </View>
 
-                <Text className="text-xs font-bold text-gray-900">
+                {/* Satır Toplamı */}
+                <Text className="text-xs font-bold text-gray-900 pl-2">
                   {(itemPrice * orderItem.quantity).toLocaleString('tr-TR', {
                     minimumFractionDigits: 2,
                   })}{' '}
@@ -182,7 +200,8 @@ export default function OldOrdersScreen() {
         {/* Teslimat Adresi Özeti */}
         {item.shippingAddress ? (
           <View className="py-2.5 px-3 bg-gray-50 rounded-xl mb-3 flex-row items-center">
-            <Text numberOfLines={3} className="text-[11px] text-gray-600 flex-1">
+            <MapPin size={14} color="#6B7280" className="mr-2" />
+            <Text numberOfLines={1} className="text-[11px] text-gray-600 flex-1">
               {item.shippingAddress}
             </Text>
           </View>
@@ -234,7 +253,7 @@ export default function OldOrdersScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* Üst Header */}
+      {/* Header */}
       <View className="pt-12 pb-3.5 px-4 bg-white border-b border-gray-100 flex-row items-center justify-between shadow-sm">
         <Pressable
           onPress={() => router.back()}
@@ -248,7 +267,7 @@ export default function OldOrdersScreen() {
         <View className="w-9" />
       </View>
 
-      {/* Sipariş Listesi */}
+      {/* Liste */}
       <FlatList
         data={orders}
         keyExtractor={(item) => item.id}
